@@ -3,7 +3,7 @@ package WeakRef::Auto;
 use 5.008_001;
 use strict;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Exporter qw(import);
 our @EXPORT = qw(autoweaken);
@@ -22,7 +22,7 @@ WeakRef::Auto -  Automatically makes references weaken
 
 =head1 VERSION
 
-This document describes WeakRef::Auto version 0.01.
+This document describes WeakRef::Auto version 0.02.
 
 =head1 SYNOPSIS
 
@@ -32,40 +32,55 @@ This document describes WeakRef::Auto version 0.01.
 
 	$ref = \$var; # $ref is weak
 
+	sub MyNode::new{
+		# ...
+		autoweaken $self->{parent}; # parent is always weaken
+		return $self;
+	}
+
 =head1 DESCRIPTION
 
-C<WeakRef::Auto> provides C<autoweaken()>, which keeps references weaken.
+This module provides C<autoweaken()>, which keeps references weaken.
 
 =head1 FUNCTIONS
 
 =head2 autoweaken($var)
 
 Turns I<$var> into auto-weaken variables, and keeps the values weak
-references.
+references. If I<$var> already has a reference, it is weaken on the spot.
 
-I<$var> can be an element of hashes or arrayes.
+I<$var> can be an element of hashes or arrays.
 
-NOTE: the prototype of C<autoweaken()> is C<"\$">. That is,
-C<autoweakn($var)> means C<&autoweaken(\$var)>. 
+=head1 NOTES
 
-=head1 DEPENDENCIES
+=over 4
 
-Perl 5.8.1 or later.
+=item *
+
+Because the prototype of C<autoweaken()> is C<"\$"> (i.e. C<autoweakn($var)>
+actually means C<&autoweaken(\$var)>), you'd better load this module in
+compile-time, using C<use WeakRef::Auto> directive.
+
+=back
 
 =head1 BUGS AND LIMITATIONS
 
 C<autoweaken()> does not work with tied variables, because autoweaken-ness is
-attached to the variable, not to the value refered by the variable, and tied
-variables iteract with their objects by values, not variables.
+attached to the variable, not to the value referred by the variable, and tied
+variables interact with their objects by values, not variables, as the following
+shows:
 
-	my $x = tie my %hash, 'Tie::StdHash';
-	autoweaken $hash{foo};
-	# $hash{foo} seems autoweaken. Really?
-	# Actually, $hash{foo} is connected to $x->{foo},
-	# but there is no way to autoweaken($x->{foo}).
-
+  my $impl = tie my %hash, 'Tie::StdHash';
+  autoweaken $hash{foo};
+  # $hash{foo} seems autoweaken. Really?
+  # Actually, $hash{foo} is linked to $impl->{foo} through FETCH()/STORE() methods,
+  # but there is no way to detect the relationship.
 
 Patches are welcome.
+
+=head1 DEPENDENCIES
+
+Perl 5.8.1 or later.
 
 =head1 SEE ALSO
 

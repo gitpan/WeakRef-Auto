@@ -1,10 +1,10 @@
 #!perl -w
 
 use strict;
-use Test::More tests => 23;
+use Test::More tests => 22;
 
 use WeakRef::Auto;
-use Devel::Peek;
+#use Devel::Peek;
 
 my $destroyed = 0;
 {
@@ -86,13 +86,6 @@ eval{
 	$ref = 1;
 };
 like $@, qr/Can't weaken a nonreference/;
-
-eval{
-	my $ro;
-	Internals::SvREADONLY($ro, 1);
-	autoweaken $ro;
-};
-like $@, qr/read-only/;
 
 eval{
 	&autoweaken(10);
